@@ -28,7 +28,57 @@ class Client:
         self.__email = email.strip() if email else None
         self.__registration_date = registration_date.strip() if registration_date else None
 
-    # region АЛЬТЕРНАТИВНЫЕ КОНСТРУКТОРЫ (ЗАДАНИЕ 6)
+    # ВЫВОД И СРАВНЕНИЕ (ЗАДАНИЕ 7)
+
+    def full_info(self) -> str:
+        """
+        Возвращает полную информацию о клиенте.
+        """
+        lines = [
+            "=" * 40,
+            "ПОЛНАЯ ИНФОРМАЦИЯ О КЛИЕНТЕ",
+            "=" * 40,
+            f"ID: {self.client_id}",
+            f"Фамилия: {self.last_name}",
+            f"Имя: {self.first_name}",
+            f"Отчество: {self.patronymic or 'не указано'}",
+            f"Телефон: {self.phone or 'не указан'}",
+            f"Email: {self.email or 'не указан'}",
+            f"Дата регистрации: {self.registration_date or 'не указана'}",
+            "=" * 40
+        ]
+        return "\n".join(lines)
+
+    def short_info(self) -> str:
+        """
+        Возвращает краткую информацию о клиенте.
+        """
+        patronymic_str = f" {self.patronymic}" if self.patronymic else ""
+        return f"{self.last_name} {self.first_name}{patronymic_str} (ID: {self.client_id})"
+
+    def __eq__(self, other) -> bool:
+        """
+        Сравнивает два объекта Client на равенство.
+        """
+        if not isinstance(other, Client):
+            return False
+
+        return (self.client_id == other.client_id and
+                self.last_name == other.last_name and
+                self.first_name == other.first_name and
+                self.patronymic == other.patronymic and
+                self.phone == other.phone and
+                self.email == other.email and
+                self.registration_date == other.registration_date)
+
+    def __hash__(self) -> int:
+        """
+        Возвращает хеш-значение объекта.
+        Необходим для работы с множествами и словарями.
+        """
+        return hash((self.client_id, self.last_name, self.first_name, self.patronymic))
+
+    # АЛЬТЕРНАТИВНЫЕ КОНСТРУКТОРЫ (ЗАДАНИЕ 6)
 
     @classmethod
     def from_full_name_string(cls, full_name_string: str, client_id: int = 1):
@@ -139,7 +189,7 @@ class Client:
                 if '.' not in value_stripped.split('@')[-1]:
                     raise ValueError("Email должен содержать домен с точкой")
 
-    # region Свойства (геттеры)
+    #  Свойства (геттеры)
 
     @property
     def client_id(self) -> int:
@@ -169,6 +219,8 @@ class Client:
     def registration_date(self) -> str:
         return self.__registration_date
 
+    # endregion
+
     def to_dict(self) -> dict:
         """
         Преобразует объект в словарь (удобно для JSON).
@@ -191,10 +243,10 @@ class Client:
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
 
     def __str__(self) -> str:
-        patronymic_str = f" {self.patronymic}" if self.patronymic else ""
-        phone_str = f", тел: {self.phone}" if self.phone else ""
-        return f"Клиент {self.last_name} {self.first_name}{patronymic_str} (ID: {self.client_id}{phone_str})"
+        """Строковое представление для print()."""
+        return self.short_info()
 
     def __repr__(self) -> str:
+        """Формальное строковое представление для разработчиков."""
         return (f"Client(client_id={self.client_id}, last_name='{self.last_name}', "
                 f"first_name='{self.first_name}', patronymic='{self.patronymic}')")

@@ -1,96 +1,163 @@
 class Client:
-    def __init__(self, client_id, familia, imya, otchestvo=None, telefon=None, email=None, data_registracii=None):
+    """
+    Класс для представления клиента парикмахерской.
+    Реализует полную инкапсуляцию всех полей через свойства.
+    """
 
-        self.client_id = client_id  # Используем свойства!
-        self.familia = familia
-        self.imya = imya
-        self.otchestvo = otchestvo
-        self.telefon = telefon
+    def __init__(self, client_id: int, last_name: str, first_name: str,
+                 patronymic: str = None, phone: str = None,
+                 email: str = None, registration_date: str = None):
+        """
+        Инициализирует объект клиента.
+
+        Args:
+            client_id: Уникальный идентификатор клиента
+            last_name: Фамилия клиента
+            first_name: Имя клиента
+            patronymic: Отчество клиента (опционально)
+            phone: Телефон (опционально)
+            email: Email (опционально)
+            registration_date: Дата регистрации (опционально)
+        """
+        # Приватные поля (двойное подчеркивание - строгая инкапсуляция)
+        self.__client_id = None
+        self.__last_name = None
+        self.__first_name = None
+        self.__patronymic = None
+        self.__phone = None
+        self.__email = None
+        self.__registration_date = None
+
+        # Используем свойства для установки значений (вызываем сеттеры)
+        self.client_id = client_id
+        self.last_name = last_name
+        self.first_name = first_name
+        self.patronymic = patronymic
+        self.phone = phone
         self.email = email
-        self.data_registracii = data_registracii
+        self.registration_date = registration_date
 
+    # region Свойства (Properties) для инкапсуляции
 
     @property
-    def client_id(self):
+    def client_id(self) -> int:
+        """Возвращает идентификатор клиента."""
         return self.__client_id
 
     @client_id.setter
-    def client_id(self, value):
-        if not isinstance(value, int) or value <= 0:
-            raise ValueError("ID клиента должен быть положительным целым числом")
+    def client_id(self, value: int):
+        """Устанавливает идентификатор клиента."""
+        if not isinstance(value, int):
+            raise ValueError("ID клиента должен быть целым числом")
+        if value <= 0:
+            raise ValueError("ID клиента должен быть положительным числом")
         self.__client_id = value
 
     @property
-    def familia(self):
-        return self.__familia
+    def last_name(self) -> str:
+        """Возвращает фамилию клиента."""
+        return self.__last_name
 
-    @familia.setter
-    def familia(self, value):
-        if not value or not value.strip():
-            raise ValueError("Фамилия не может быть пустой")
-        self.__familia = value.strip()
-
-    @property
-    def imya(self):
-        return self.__imya
-
-    @imya.setter
-    def imya(self, value):
-        if not value or not value.strip():
-            raise ValueError("Имя не может быть пустой")
-        self.__imya = value.strip()
+    @last_name.setter
+    def last_name(self, value: str):
+        """Устанавливает фамилию клиента."""
+        if not value or not isinstance(value, str):
+            raise ValueError("Фамилия должна быть непустой строкой")
+        value = value.strip()
+        if not value:
+            raise ValueError("Фамилия не может быть пустой или состоять из пробелов")
+        self.__last_name = value
 
     @property
-    def otchestvo(self):
-        return self.__otchestvo
+    def first_name(self) -> str:
+        """Возвращает имя клиента."""
+        return self.__first_name
 
-    @otchestvo.setter
-    def otchestvo(self, value):
-        if value is not None:
+    @first_name.setter
+    def first_name(self, value: str):
+        """Устанавливает имя клиента."""
+        if not value or not isinstance(value, str):
+            raise ValueError("Имя должно быть непустой строкой")
+        value = value.strip()
+        if not value:
+            raise ValueError("Имя не может быть пустым или состоять из пробелов")
+        self.__first_name = value
+
+    @property
+    def patronymic(self) -> str:
+        """Возвращает отчество клиента."""
+        return self.__patronymic
+
+    @patronymic.setter
+    def patronymic(self, value: str):
+        """Устанавливает отчество клиента."""
+        if value is None:
+            self.__patronymic = None
+        else:
+            if not isinstance(value, str):
+                raise ValueError("Отчество должно быть строкой")
             value = value.strip()
-            if not value:
-                value = None
-        self.__otchestvo = value
+            self.__patronymic = value if value else None
 
     @property
-    def telefon(self):
-        return self.__telefon
+    def phone(self) -> str:
+        """Возвращает телефон клиента."""
+        return self.__phone
 
-    @telefon.setter
-    def telefon(self, value):
-        if value is not None:
+    @phone.setter
+    def phone(self, value: str):
+        """Устанавливает телефон клиента."""
+        if value is None:
+            self.__phone = None
+        else:
+            if not isinstance(value, str):
+                raise ValueError("Телефон должен быть строкой")
             value = value.strip()
-            if not value:
-                value = None
-        self.__telefon = value
+            self.__phone = value if value else None
 
     @property
-    def email(self):
+    def email(self) -> str:
+        """Возвращает email клиента."""
         return self.__email
 
     @email.setter
-    def email(self, value):
-        if value is not None:
+    def email(self, value: str):
+        """Устанавливает email клиента."""
+        if value is None:
+            self.__email = None
+        else:
+            if not isinstance(value, str):
+                raise ValueError("Email должен быть строкой")
             value = value.strip()
-            if not value:
-                value = None
-            elif '@' not in value:
+            if value and '@' not in value:
                 raise ValueError("Email должен содержать символ @")
-        self.__email = value
+            self.__email = value if value else None
 
     @property
-    def data_registracii(self):
-        return self.__data_registracii
+    def registration_date(self) -> str:
+        """Возвращает дату регистрации."""
+        return self.__registration_date
 
-    @data_registracii.setter
-    def data_registracii(self, value):
-        if value is not None:
+    @registration_date.setter
+    def registration_date(self, value: str):
+        """Устанавливает дату регистрации."""
+        if value is None:
+            self.__registration_date = None
+        else:
+            if not isinstance(value, str):
+                raise ValueError("Дата регистрации должна быть строкой")
             value = value.strip()
-            if not value:
-                value = None
-        self.__data_registracii = value
+            self.__registration_date = value if value else None
 
     # endregion
 
-    def __str__(self):
-        return f"Клиент {self.familia} {self.imya} {self.otchestvo or ''} (ID: {self.client_id})"
+    def __str__(self) -> str:
+        """Возвращает строковое представление клиента."""
+        patronymic_str = f" {self.patronymic}" if self.patronymic else ""
+        phone_str = f", тел: {self.phone}" if self.phone else ""
+        return f"Клиент {self.last_name} {self.first_name}{patronymic_str} (ID: {self.client_id}{phone_str})"
+
+    def __repr__(self) -> str:
+        """Возвращает формальное строковое представление."""
+        return (f"Client(client_id={self.client_id}, last_name='{self.last_name}', "
+                f"first_name='{self.first_name}', patronymic='{self.patronymic}')")

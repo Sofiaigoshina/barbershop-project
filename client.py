@@ -1,38 +1,55 @@
-class Client:
+import json
+from short_client import ShortClient
+
+
+class Client(ShortClient):
     """
-    Класс для представления клиента парикмахерской.
-    Реализует полную инкапсуляцию всех полей через свойства.
+    Класс для полного представления клиента парикмахерской.
+    Наследует от ShortClient и добавляет дополнительные поля.
     """
 
     def __init__(self, client_id: int, last_name: str, first_name: str,
                  patronymic: str = None, phone: str = None,
                  email: str = None, registration_date: str = None):
         """
-        Основной конструктор - создает клиента из отдельных параметров.
+        Инициализирует объект клиента.
         """
-        # Валидация ВСЕХ полей перед созданием объекта
-        Client._validate_positive_int(client_id, "ID клиента")
-        Client._validate_required_string(last_name, "Фамилия", min_length=2)
-        Client._validate_required_string(first_name, "Имя", min_length=2)
-        Client._validate_optional_string(patronymic, "Отчество")
-        Client._validate_optional_string(phone, "Телефон")
-        Client._validate_email(email)
-        Client._validate_optional_string(registration_date, "Дата регистрации")
+        # ВЫЗЫВАЕМ КОНСТРУКТОР РОДИТЕЛЬСКОГО КЛАССА (убираем дублирование)
+        super().__init__(client_id, last_name, first_name, patronymic)
 
-        # ТОЛЬКО ЕСЛИ ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ: создаем объект
-        self.__client_id = client_id
-        self.__last_name = last_name.strip()
-        self.__first_name = first_name.strip()
-        self.__patronymic = patronymic.strip() if patronymic else None
-        self.__phone = phone.strip() if phone else None
-        self.__email = email.strip() if email else None
-        self.__registration_date = registration_date.strip() if registration_date else None
+        # ДОБАВЛЯЕМ ВАЛИДАЦИЮ НОВЫХ ПОЛЕЙ (только для новых полей)
+        self._validate_optional_string(phone, "Телефон")
+        self._validate_email(email)
+        self._validate_optional_string(registration_date, "Дата регистрации")
 
-    # ВЫВОД И СРАВНЕНИЕ (ЗАДАНИЕ 7)
+        # ДОБАВЛЯЕМ НОВЫЕ ПОЛЯ
+        self._phone = phone.strip() if phone else None
+        self._email = email.strip() if email else None
+        self._registration_date = registration_date.strip() if registration_date else None
+
+    # region ДОПОЛНИТЕЛЬНЫЕ СВОЙСТВА (только новые поля)
+
+    @property
+    def phone(self) -> str:
+        """Возвращает телефон клиента."""
+        return self._phone
+
+    @property
+    def email(self) -> str:
+        """Возвращает email клиента."""
+        return self._email
+
+    @property
+    def registration_date(self) -> str:
+        """Возвращает дату регистрации."""
+        return self._registration_date
+
+    # ПЕРЕОПРЕДЕЛЕННЫЕ МЕТОДЫ (дополняем родительские)
 
     def full_info(self) -> str:
         """
         Возвращает полную информацию о клиенте.
+        Переопределяет/дополняет метод из родительского класса.
         """
         lines = [
             "=" * 40,
@@ -52,59 +69,54 @@ class Client:
     def short_info(self) -> str:
         """
         Возвращает краткую информацию о клиенте.
+        Использует унаследованные методы.
         """
-        patronymic_str = f" {self.patronymic}" if self.patronymic else ""
-        return f"{self.last_name} {self.first_name}{patronymic_str} (ID: {self.client_id})"
+        return f"{self.get_full_name()} (ID: {self.client_id})"
 
     def __eq__(self, other) -> bool:
         """
         Сравнивает два объекта Client на равенство.
+        Расширяет сравнение родительского класса.
         """
+        # Сначала проверяем равенство по родительским полям
+        if not super().__eq__(other):
+            return False
+
+        # Затем проверяем дополнительные поля
         if not isinstance(other, Client):
             return False
 
-        return (self.client_id == other.client_id and
-                self.last_name == other.last_name and
-                self.first_name == other.first_name and
-                self.patronymic == other.patronymic and
-                self.phone == other.phone and
+        return (self.phone == other.phone and
                 self.email == other.email and
                 self.registration_date == other.registration_date)
 
-    def __hash__(self) -> int:
-        """
-        Возвращает хеш-значение объекта.
-        Необходим для работы с множествами и словарями.
-        """
-        return hash((self.client_id, self.last_name, self.first_name, self.patronymic))
+    def __repr__(self) -> str:
+        """Формальное строковое представление."""
+        return (f"Client(client_id={self.client_id}, last_name='{self.last_name}', "
+                f"first_name='{self.first_name}', patronymic='{self.patronymic}')")
 
-    # АЛЬТЕРНАТИВНЫЕ КОНСТРУКТОРЫ (ЗАДАНИЕ 6)
+    # УНИКАЛЬНЫЕ МЕТОДЫ Client (не дублируются)
 
-    @classmethod
-    def from_full_name_string(cls, full_name_string: str, client_id: int = 1):
-        """
-        Создает клиента из строки с полным именем.
-        """
-        if not full_name_string or not isinstance(full_name_string, str):
-            raise ValueError("Строка с ФИО не может быть пустой")
+    @staticmethod
+    def _validate_email(value: str):
+        """Проверка корректности email адреса."""
+        if value is not None:
+            if not isinstance(value, str):
+                raise ValueError("Email должен быть строкой")
+            value_stripped = value.strip()
+            if value_stripped:
+                if '@' not in value_stripped:
+                    raise ValueError("Email должен содержать символ @")
+                if '.' not in value_stripped.split('@')[-1]:
+                    raise ValueError("Email должен содержать домен с точкой")
 
-        parts = full_name_string.strip().split()
-        if len(parts) < 2:
-            raise ValueError("Строка должна содержать как минимум фамилию и имя")
-
-        last_name = parts[0]
-        first_name = parts[1]
-        patronymic = parts[2] if len(parts) > 2 else None
-
-        return cls(client_id, last_name, first_name, patronymic)
+    # АЛЬТЕРНАТИВНЫЕ КОНСТРУКТОРЫ (уникальные для Client)
 
     @classmethod
     def from_json(cls, json_data: str):
         """
         Создает клиента из JSON строки.
         """
-        import json
-
         try:
             data = json.loads(json_data)
         except json.JSONDecodeError as e:
@@ -143,87 +155,11 @@ class Client:
         """
         return cls(client_id, last_name, first_name, phone=phone)
 
-    # Статические методы проверки (задания 4-5)
-
-    @staticmethod
-    def _validate_positive_int(value: int, field_name: str):
-        """Универсальная проверка положительного целого числа."""
-        if not isinstance(value, int):
-            raise ValueError(f"{field_name} должен быть целым числом")
-        if value <= 0:
-            raise ValueError(f"{field_name} должен быть положительным числом")
-
-    @staticmethod
-    def _validate_required_string(value: str, field_name: str, min_length: int = 1):
-        """Универсальная проверка обязательных строковых полей."""
-        if not value:
-            raise ValueError(f"{field_name} не может быть пустой")
-        if not isinstance(value, str):
-            raise ValueError(f"{field_name} должна быть строкой")
-
-        value_stripped = value.strip()
-        if not value_stripped:
-            raise ValueError(f"{field_name} не может состоять только из пробелов")
-        if len(value_stripped) < min_length:
-            raise ValueError(f"{field_name} должна содержать минимум {min_length} символов")
-
-    @staticmethod
-    def _validate_optional_string(value: str, field_name: str):
-        """Универсальная проверка опциональных строковых полей."""
-        if value is not None:
-            if not isinstance(value, str):
-                raise ValueError(f"{field_name} должна быть строкой")
-            if not value.strip():
-                raise ValueError(f"{field_name} не может быть пустой")
-
-    @staticmethod
-    def _validate_email(value: str):
-        """Проверка корректности email адреса."""
-        if value is not None:
-            if not isinstance(value, str):
-                raise ValueError("Email должен быть строкой")
-            value_stripped = value.strip()
-            if value_stripped:
-                if '@' not in value_stripped:
-                    raise ValueError("Email должен содержать символ @")
-                if '.' not in value_stripped.split('@')[-1]:
-                    raise ValueError("Email должен содержать домен с точкой")
-
-    #  Свойства (геттеры)
-
-    @property
-    def client_id(self) -> int:
-        return self.__client_id
-
-    @property
-    def last_name(self) -> str:
-        return self.__last_name
-
-    @property
-    def first_name(self) -> str:
-        return self.__first_name
-
-    @property
-    def patronymic(self) -> str:
-        return self.__patronymic
-
-    @property
-    def phone(self) -> str:
-        return self.__phone
-
-    @property
-    def email(self) -> str:
-        return self.__email
-
-    @property
-    def registration_date(self) -> str:
-        return self.__registration_date
-
-    # endregion
+    # МЕТОДЫ ПРЕОБРАЗОВАНИЯ
 
     def to_dict(self) -> dict:
         """
-        Преобразует объект в словарь (удобно для JSON).
+        Преобразует объект в словарь.
         """
         return {
             "client_id": self.client_id,
@@ -239,14 +175,4 @@ class Client:
         """
         Преобразует объект в JSON строку.
         """
-        import json
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
-
-    def __str__(self) -> str:
-        """Строковое представление для print()."""
-        return self.short_info()
-
-    def __repr__(self) -> str:
-        """Формальное строковое представление для разработчиков."""
-        return (f"Client(client_id={self.client_id}, last_name='{self.last_name}', "
-                f"first_name='{self.first_name}', patronymic='{self.patronymic}')")

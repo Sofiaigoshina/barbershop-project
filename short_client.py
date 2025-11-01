@@ -1,7 +1,7 @@
 class ShortClient:
     """
-    Класс для краткого представления клиента.
-    Содержит только основную информацию: ФИО и ID.
+    Базовый класс для краткого представления клиента.
+    Содержит основную информацию: ФИО и ID.
     """
 
     def __init__(self, client_id: int, last_name: str, first_name: str, patronymic: str = None):
@@ -14,11 +14,11 @@ class ShortClient:
         self._validate_required_string(first_name, "Имя", min_length=2)
         self._validate_optional_string(patronymic, "Отчество")
 
-        # Приватные поля
-        self.__client_id = client_id
-        self.__last_name = last_name.strip()
-        self.__first_name = first_name.strip()
-        self.__patronymic = patronymic.strip() if patronymic else None
+        # Защищенные поля (один подчерк - для наследования)
+        self._client_id = client_id
+        self._last_name = last_name.strip()
+        self._first_name = first_name.strip()
+        self._patronymic = patronymic.strip() if patronymic else None
 
     # СТАТИЧЕСКИЕ МЕТОДЫ ВАЛИДАЦИИ
 
@@ -48,22 +48,22 @@ class ShortClient:
     @property
     def client_id(self) -> int:
         """Возвращает ID клиента."""
-        return self.__client_id
+        return self._client_id
 
     @property
     def last_name(self) -> str:
         """Возвращает фамилию клиента."""
-        return self.__last_name
+        return self._last_name
 
     @property
     def first_name(self) -> str:
         """Возвращает имя клиента."""
-        return self.__first_name
+        return self._first_name
 
     @property
     def patronymic(self) -> str:
         """Возвращает отчество клиента."""
-        return self.__patronymic
+        return self._patronymic
 
     # МЕТОДЫ ПРЕОБРАЗОВАНИЯ
 
@@ -117,17 +117,6 @@ class ShortClient:
         return hash((self.client_id, self.last_name, self.first_name, self.patronymic))
 
     # АЛЬТЕРНАТИВНЫЕ КОНСТРУКТОРЫ
-
-    @classmethod
-    def from_client(cls, client):
-        """
-        Создает ShortClient из объекта Client.
-        """
-        from client import Client
-        if not isinstance(client, Client):
-            raise ValueError("Можно создать только из объекта Client")
-
-        return cls(client.client_id, client.last_name, client.first_name, client.patronymic)
 
     @classmethod
     def from_full_name_string(cls, full_name_string: str, client_id: int = 1):

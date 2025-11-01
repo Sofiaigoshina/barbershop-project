@@ -9,147 +9,103 @@ class Client:
                  email: str = None, registration_date: str = None):
         """
         Инициализирует объект клиента.
-
-        Args:
-            client_id: Уникальный идентификатор клиента
-            last_name: Фамилия клиента
-            first_name: Имя клиента
-            patronymic: Отчество клиента (опционально)
-            phone: Телефон (опционально)
-            email: Email (опционально)
-            registration_date: Дата регистрации (опционально)
         """
-        # Приватные поля (двойное подчеркивание - строгая инкапсуляция)
-        self.__client_id = None
-        self.__last_name = None
-        self.__first_name = None
-        self.__patronymic = None
-        self.__phone = None
-        self.__email = None
-        self.__registration_date = None
+        # Валидация ВСЕХ полей перед созданием объекта
+        Client.validate_client_id(client_id)
+        Client.validate_name(last_name, "Фамилия")
+        Client.validate_name(first_name, "Имя")
+        Client.validate_optional_string(patronymic, "Отчество")
+        Client.validate_optional_string(phone, "Телефон")
+        Client.validate_email(email)
+        Client.validate_optional_string(registration_date, "Дата регистрации")
 
-        # Используем свойства для установки значений (вызываем сеттеры)
-        self.client_id = client_id
-        self.last_name = last_name
-        self.first_name = first_name
-        self.patronymic = patronymic
-        self.phone = phone
-        self.email = email
-        self.registration_date = registration_date
+        # ТОЛЬКО ЕСЛИ ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ: создаем объект
+        self.__client_id = client_id
+        self.__last_name = last_name.strip()
+        self.__first_name = first_name.strip()
+        self.__patronymic = patronymic.strip() if patronymic else None
+        self.__phone = phone.strip() if phone else None
+        self.__email = email.strip() if email else None
+        self.__registration_date = registration_date.strip() if registration_date else None
 
-    # region Свойства (Properties) для инкапсуляции
-
-    @property
-    def client_id(self) -> int:
-        """Возвращает идентификатор клиента."""
-        return self.__client_id
-
-    @client_id.setter
-    def client_id(self, value: int):
-        """Устанавливает идентификатор клиента."""
+    #  Статические методы проверки
+    @staticmethod
+    def validate_client_id(value: int):
+        """Проверяет корректность ID клиента."""
         if not isinstance(value, int):
             raise ValueError("ID клиента должен быть целым числом")
         if value <= 0:
             raise ValueError("ID клиента должен быть положительным числом")
-        self.__client_id = value
+
+    @staticmethod
+    def validate_name(value: str, field_name: str):
+        """Проверяет корректность имени и фамилии."""
+        if not value:
+            raise ValueError(f"{field_name} не может быть пустой")
+        if not isinstance(value, str):
+            raise ValueError(f"{field_name} должна быть строкой")
+        if not value.strip():
+            raise ValueError(f"{field_name} не может состоять только из пробелов")
+        if len(value.strip()) < 2:
+            raise ValueError(f"{field_name} должна содержать минимум 2 символа")
+
+    @staticmethod
+    def validate_optional_string(value: str, field_name: str):
+        """Проверяет опциональные строковые поля."""
+        if value is not None:
+            if not isinstance(value, str):
+                raise ValueError(f"{field_name} должна быть строкой")
+            if not value.strip():
+                raise ValueError(f"{field_name} не может быть пустой")
+
+    @staticmethod
+    def validate_email(value: str):
+        """Проверяет корректность email адреса."""
+        if value is not None:
+            if not isinstance(value, str):
+                raise ValueError("Email должен быть строкой")
+            value = value.strip()
+            if value:  # Если email не пустой
+                if '@' not in value:
+                    raise ValueError("Email должен содержать символ @")
+                if '.' not in value.split('@')[-1]:
+                    raise ValueError("Email должен содержать домен с точкой")
+
+    # свойства (ТОЛЬКО геттеры - поля неизменяемые после создания)
+    @property
+    def client_id(self) -> int:
+        """Возвращает идентификатор клиента."""
+        return self.__client_id
 
     @property
     def last_name(self) -> str:
         """Возвращает фамилию клиента."""
         return self.__last_name
 
-    @last_name.setter
-    def last_name(self, value: str):
-        """Устанавливает фамилию клиента."""
-        if not value or not isinstance(value, str):
-            raise ValueError("Фамилия должна быть непустой строкой")
-        value = value.strip()
-        if not value:
-            raise ValueError("Фамилия не может быть пустой или состоять из пробелов")
-        self.__last_name = value
-
     @property
     def first_name(self) -> str:
         """Возвращает имя клиента."""
         return self.__first_name
-
-    @first_name.setter
-    def first_name(self, value: str):
-        """Устанавливает имя клиента."""
-        if not value or not isinstance(value, str):
-            raise ValueError("Имя должно быть непустой строкой")
-        value = value.strip()
-        if not value:
-            raise ValueError("Имя не может быть пустым или состоять из пробелов")
-        self.__first_name = value
 
     @property
     def patronymic(self) -> str:
         """Возвращает отчество клиента."""
         return self.__patronymic
 
-    @patronymic.setter
-    def patronymic(self, value: str):
-        """Устанавливает отчество клиента."""
-        if value is None:
-            self.__patronymic = None
-        else:
-            if not isinstance(value, str):
-                raise ValueError("Отчество должно быть строкой")
-            value = value.strip()
-            self.__patronymic = value if value else None
-
     @property
     def phone(self) -> str:
         """Возвращает телефон клиента."""
         return self.__phone
-
-    @phone.setter
-    def phone(self, value: str):
-        """Устанавливает телефон клиента."""
-        if value is None:
-            self.__phone = None
-        else:
-            if not isinstance(value, str):
-                raise ValueError("Телефон должен быть строкой")
-            value = value.strip()
-            self.__phone = value if value else None
 
     @property
     def email(self) -> str:
         """Возвращает email клиента."""
         return self.__email
 
-    @email.setter
-    def email(self, value: str):
-        """Устанавливает email клиента."""
-        if value is None:
-            self.__email = None
-        else:
-            if not isinstance(value, str):
-                raise ValueError("Email должен быть строкой")
-            value = value.strip()
-            if value and '@' not in value:
-                raise ValueError("Email должен содержать символ @")
-            self.__email = value if value else None
-
     @property
     def registration_date(self) -> str:
         """Возвращает дату регистрации."""
         return self.__registration_date
-
-    @registration_date.setter
-    def registration_date(self, value: str):
-        """Устанавливает дату регистрации."""
-        if value is None:
-            self.__registration_date = None
-        else:
-            if not isinstance(value, str):
-                raise ValueError("Дата регистрации должна быть строкой")
-            value = value.strip()
-            self.__registration_date = value if value else None
-
-    # endregion
 
     def __str__(self) -> str:
         """Возвращает строковое представление клиента."""

@@ -73,7 +73,7 @@ class Client:
     @staticmethod
     def _validate_email(value: str):
         """
-        Специализированная проверка email (остается отдельно, т.к. уникальная логика).
+        Специализированная проверка email.
         """
         if value is not None:
             if not isinstance(value, str):
